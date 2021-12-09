@@ -74,15 +74,13 @@ public class MojangAccount extends AbstractAccount {
      */
     public Map<String, Object> store;
 
-    public MojangAccount(String username, String password, LoginResponse response, Boolean remember,
+    public MojangAccount(String username, String password, String response, Boolean remember,
             String clientToken) {
-        this(username, password, response.getAuth().getSelectedProfile().getName(),
-                response.getAuth().getSelectedProfile().getId().toString(), remember, clientToken,
-                response.getAuth().saveForStorage());
+        this(username, password, username, clientToken, remember, clientToken);
     }
 
     public MojangAccount(String username, String password, String minecraftUsername, String uuid, Boolean remember,
-            String clientToken, Map<String, Object> store) {
+            String clientToken) {
         this.username = username;
         if (remember) {
             this.password = password;
@@ -210,68 +208,7 @@ public class MojangAccount extends AbstractAccount {
 
     public LoginResponse login() {
         LoginResponse response = null;
-
-        if (this.getAccessToken() != null) {
-            LogManager.info("Trying to login with access token!");
-            response = Authentication.login(this, false);
-        }
-
-        if (response == null || (response.hasError() && !response.isOffline())) {
-            LogManager.error("Access token is NOT valid! Will attempt to get another one!");
-
-            if (!this.remember) {
-                JPanel panel = new JPanel();
-                panel.setLayout(new BorderLayout());
-                JLabel passwordLabel = new JLabel(GetText.tr("Enter password for {0}", this.minecraftUsername));
-
-                JPasswordField passwordField = new JPasswordField();
-                panel.add(passwordLabel, BorderLayout.NORTH);
-                panel.add(passwordField, BorderLayout.CENTER);
-
-                int ret = DialogManager.confirmDialog().setTitle(GetText.tr("Enter Password")).setContent(panel).show();
-
-                if (ret == DialogManager.OK_OPTION) {
-                    if (passwordField.getPassword().length == 0) {
-                        LogManager.error("Aborting login for " + this.minecraftUsername + ", no password entered");
-                        App.launcher.setMinecraftLaunched(false);
-                        return null;
-                    }
-
-                    this.setPassword(new String(passwordField.getPassword()));
-                } else {
-                    LogManager.error("Aborting login for " + this.minecraftUsername);
-                    App.launcher.setMinecraftLaunched(false);
-                    return null;
-                }
-            }
-
-            response = Authentication.login(MojangAccount.this, true);
-        }
-
-        if (response.hasError() && !response.isOffline()) {
-            LogManager.error(response.getErrorMessage());
-
-            DialogManager
-                    .okDialog().setTitle(
-                            GetText.tr("Error Logging In"))
-                    .setContent(new HTMLBuilder().center().text(GetText.tr("Couldn't login to Minecraft servers")
-                            + "<br/><br/>" + response.getErrorMessage()).build())
-                    .setType(DialogManager.ERROR).show();
-
-            App.launcher.setMinecraftLaunched(false);
-            return null;
-        }
-
-        if (!response.isOffline() && !response.getAuth().canPlayOnline()) {
-            return null;
-        }
-
-        if (!response.isOffline()) {
-            this.uuid = response.getAuth().getSelectedProfile().getId().toString();
-            this.store = response.getAuth().saveForStorage();
-            AccountManager.saveAccounts();
-        }
-
+        response = Authentication.login(MojangAccount.this, true);
         return response;
     }
 }

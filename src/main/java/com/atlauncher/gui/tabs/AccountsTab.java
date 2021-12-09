@@ -387,7 +387,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
         AbstractAccount account;
         String clientToken = UUID.randomUUID().toString().replace("-", "");
         String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
         boolean remember = rememberField.isSelected();
         if (AccountManager.isAccountByName(username) && accountsComboBox.getSelectedIndex() == 0) {
             DialogManager.okDialog().setTitle(GetText.tr("Account Not Added"))
@@ -396,63 +395,14 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
         }
 
         LogManager.info("Logging into Minecraft!");
-        final ProgressDialog<LoginResponse> dialog = new ProgressDialog<>(GetText.tr("Logging Into Minecraft"), 0,
-                GetText.tr("Logging Into Minecraft"), "Aborting login for " + usernameField.getText());
-        dialog.setName("loginDialog");
-        dialog.addThread(new Thread(() -> {
-            LoginResponse resp = Authentication.checkAccount(usernameField.getText(),
-                    new String(passwordField.getPassword()), clientToken);
-            dialog.setReturnValue(resp);
-            dialog.close();
-        }));
-        dialog.start();
-        LoginResponse response = dialog.getReturnValue();
-        if (response != null && response.hasAuth() && response.isValidAuth()) {
-            if (accountsComboBox.getSelectedIndex() == 0) {
-                account = new MojangAccount(username, password, response, remember, clientToken);
-                AccountManager.addAccount(account);
-            } else {
-                account = ((ComboItem<AbstractAccount>) accountsComboBox.getSelectedItem()).getValue();
-
-                if (account instanceof MojangAccount) {
-                    MojangAccount mojangAccount = (MojangAccount) account;
-
-                    mojangAccount.username = username;
-                    mojangAccount.minecraftUsername = response.getAuth().getSelectedProfile().getName();
-                    mojangAccount.uuid = response.getAuth().getSelectedProfile().getId().toString();
-                    if (remember) {
-                        mojangAccount.setPassword(password);
-                    } else {
-                        mojangAccount.encryptedPassword = null;
-                        mojangAccount.password = null;
-                    }
-                    mojangAccount.remember = remember;
-                    mojangAccount.clientToken = clientToken;
-                    mojangAccount.store = response.getAuth().saveForStorage();
-
-                    AccountManager.saveAccounts();
-                    com.atlauncher.evnt.manager.AccountManager.post();
-                }
-
-                Analytics.sendEvent("Edit", "Account");
-                LogManager.info("Edited Account " + account);
-                DialogManager.okDialog().setTitle(GetText.tr("Account Edited"))
-                        .setContent(GetText.tr("Account edited successfully")).setType(DialogManager.INFO).show();
-            }
-            accountsComboBox.removeAllItems();
-            accountsComboBox.addItem(new ComboItem<>(null, GetText.tr("Add An Account")));
+        account = new MojangAccount(username, "", "", remember, clientToken);
+        AccountManager.addAccount(account);
+        accountsComboBox.removeAllItems();
+        accountsComboBox.addItem(new ComboItem<>(null, GetText.tr("Add An Account")));
             for (AbstractAccount accountt : AccountManager.getAccounts()) {
                 accountsComboBox.addItem(new ComboItem<>(accountt, accountt.minecraftUsername));
             }
             accountsComboBox.setSelectedItem(account);
-        } else {
-            LogManager.error(response.getErrorMessage());
-            DialogManager.okDialog().setTitle(GetText.tr("Account Not Added")).setContent(new HTMLBuilder().center()
-                    // #. {0} is the error message from Mojang as to why we couldn't login
-                    .text(GetText.tr("Account not added as login details were incorrect.<br/><br/>{0}",
-                            response.getErrorMessage()))
-                    .build()).setType(DialogManager.INFO).show();
-        }
     }
 
     @Override
