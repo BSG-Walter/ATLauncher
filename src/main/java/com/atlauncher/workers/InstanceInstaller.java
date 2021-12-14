@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -1321,6 +1322,10 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
 
         restoreSelectFiles();
 
+        writeLog4j2XmlFileIfNeeded();
+
+        writeLog4ShellExploitArgumentsForForgeScripts();
+
         installServerBootScripts();
 
         return true;
@@ -1444,6 +1449,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         server.version = this.packVersion.version;
         server.isDev = this.version.isDev;
         server.mods = this.modsInstalled;
+        server.isPatchedForLog4Shell = true;
 
         if (this.version.isDev) {
             server.hash = this.version.hash;
@@ -2690,6 +2696,9 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         File tmpBatFile = new File(this.temp.toFile(), "LaunchServer.bat");
         File tmpShFile = new File(this.temp.toFile(), "LaunchServer.sh");
         File tmpCommandFile = new File(this.temp.toFile(), "LaunchServer.command");
+        File tmp1BatFile = new File(this.temp.toFile(), "LaunchServer1.bat");
+        File tmp1ShFile = new File(this.temp.toFile(), "LaunchServer1.sh");
+        File tmp1CommandFile = new File(this.temp.toFile(), "LaunchServer1.command");
 
         // write out the server jar filename
         Utils.replaceText(App.class.getResourceAsStream("/server-scripts/LaunchServer.bat"), tmpBatFile,
@@ -2700,14 +2709,55 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
                 "%%SERVERJAR%%", getServerJar());
 
         // replace/remove the server arguments (if any)
-        Utils.replaceText(new FileInputStream(tmpBatFile), batFile, "%%ARGUMENTS%%", this.packVersion.serverArguments);
-        Utils.replaceText(new FileInputStream(tmpShFile), shFile, "%%ARGUMENTS%%", this.packVersion.serverArguments);
-        Utils.replaceText(new FileInputStream(tmpCommandFile), commandFile, "%%ARGUMENTS%%",
+        Utils.replaceText(new FileInputStream(tmpBatFile), tmp1BatFile, "%%ARGUMENTS%%",
                 this.packVersion.serverArguments);
+        Utils.replaceText(new FileInputStream(tmpShFile), tmp1ShFile, "%%ARGUMENTS%%",
+                this.packVersion.serverArguments);
+        Utils.replaceText(new FileInputStream(tmpCommandFile), tmp1CommandFile, "%%ARGUMENTS%%",
+                this.packVersion.serverArguments);
+
+        // replace/remove the logging arguments for Log4Shell exploit (if any)
+        String log4ShellArguments = this.getLog4ShellArguments();
+        Utils.replaceText(new FileInputStream(tmp1BatFile), batFile, "%%LOG4SHELLARGUMENTS%%", log4ShellArguments);
+        Utils.replaceText(new FileInputStream(tmp1ShFile), shFile, "%%LOG4SHELLARGUMENTS%%", log4ShellArguments);
+        Utils.replaceText(new FileInputStream(tmp1CommandFile), commandFile, "%%LOG4SHELLARGUMENTS%%",
+                log4ShellArguments);
 
         batFile.setExecutable(true);
         shFile.setExecutable(true);
         commandFile.setExecutable(true);
+    }
+
+    private void writeLog4ShellExploitArgumentsForForgeScripts() throws Exception {
+        if (!isServer || (this.loaderVersion != null && this.loaderVersion.shouldInstallServerScripts())) {
+            return;
+        }
+
+        if (Files.exists(root.resolve("user_jvm_args.txt")) && minecraftVersionManifest.isLog4ShellExploitable()) {
+            Files.write(root.resolve("user_jvm_args.txt"),
+                    (System.lineSeparator() + this.getLog4ShellArguments()).getBytes(StandardCharsets.UTF_8),
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        }
+    }
+
+    private void writeLog4j2XmlFileIfNeeded() throws Exception {
+        if (minecraftVersionManifest.isLog4ShellExploitable()) {
+            if (loaderVersion != null && loaderVersion.isForge()) {
+                Utils.writeResourceToFile(App.class.getResourceAsStream(minecraftVersionManifest.getLog4JFileForge()),
+                        root.resolve("log4j2.xml").toFile());
+            } else {
+                Utils.writeResourceToFile(App.class.getResourceAsStream(minecraftVersionManifest.getLog4JFile()),
+                        root.resolve("log4j2.xml").toFile());
+            }
+        }
+    }
+
+    private String getLog4ShellArguments() throws Exception {
+        if (minecraftVersionManifest.isLog4ShellExploitable()) {
+            return "-Dlog4j2.formatMsgNoLookups=true -Dlog4j.configurationFile=log4j2.xml";
+        }
+
+        return "";
     }
 
     public String getServerJar() {

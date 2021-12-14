@@ -39,6 +39,7 @@ import com.atlauncher.data.LoginResponse;
 import com.atlauncher.data.MicrosoftAccount;
 import com.atlauncher.data.MojangAccount;
 import com.atlauncher.data.minecraft.Library;
+import com.atlauncher.data.minecraft.LoggingClient;
 import com.atlauncher.data.minecraft.PropertyMapSerializer;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.mclauncher.legacy.LegacyMCLauncher;
@@ -159,6 +160,8 @@ public class MCLauncher {
         int initialMemory = Optional.ofNullable(instance.launcher.initialMemory).orElse(App.settings.initialMemory);
         int maximumMemory = Optional.ofNullable(instance.launcher.maximumMemory).orElse(App.settings.maximumMemory);
         int permGen = Optional.ofNullable(instance.launcher.permGen).orElse(App.settings.metaspace);
+        boolean enableLog4jExploitFix = Optional.ofNullable(instance.launcher.enableLog4jExploitFix)
+                .orElse(App.settings.enableLog4jExploitFix);
         String javaArguments = Optional.ofNullable(instance.launcher.javaArguments).orElse(App.settings.javaParameters);
         String javaPath = instance.getJavaPath();
 
@@ -285,6 +288,16 @@ public class MCLauncher {
 
         arguments.add("-Dfml.log.level=" + App.settings.forgeLoggingLevel);
 
+        if (instance.logging != null && instance.logging.client != null) {
+            LoggingClient loggingClient = instance.logging.client;
+
+            Path loggingClientPath = FileSystem.RESOURCES_LOG_CONFIGS.resolve(loggingClient.file.id);
+
+            if (Files.exists(loggingClientPath)) {
+                arguments.add(loggingClient.getCompiledArgument());
+            }
+        }
+
         if (OS.isMac()) {
             arguments.add("-Dapple.laf.useScreenMenuBar=true");
             arguments.add("-Xdock:name=\"" + instance.getName() + "\"");
@@ -321,6 +334,11 @@ public class MCLauncher {
         if (OS.isWindows() && !arguments
                 .contains("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump")) {
             arguments.add("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump");
+        }
+
+        // add -Dlog4j2.formatMsgNoLookups=true if not there already (Log4J exploit fix)
+        if (enableLog4jExploitFix && !arguments.contains("-Dlog4j2.formatMsgNoLookups=true")) {
+            arguments.add("-Dlog4j2.formatMsgNoLookups=true");
         }
 
         // if there's no -Djava.library.path already, then add it (for older versions)
