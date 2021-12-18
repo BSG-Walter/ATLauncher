@@ -97,7 +97,7 @@ public class Launcher {
             downloadUpdatedFiles(); // Downloads updated files on the server
         }
 
-        checkForLauncherUpdate();
+        //checkForLauncherUpdate();
 
         ConfigManager.loadConfig(); // Load the config
 
@@ -358,7 +358,7 @@ public class Launcher {
             if (hasUpdatedFiles()) {
                 downloadUpdatedFiles(); // Downloads updated files on the server
             }
-            checkForLauncherUpdate();
+            //checkForLauncherUpdate();
             checkForExternalPackUpdates();
 
             ConfigManager.loadConfig(); // Load the config
