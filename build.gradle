@@ -6,6 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+		classpath 'edu.sc.seis.launch4j:launch4j:2.5.1'
         classpath 'org.mini2Dx:gettext-gradle-plugin:1.10.1'
     }
 }
@@ -14,15 +15,15 @@ plugins {
     id 'java'
     id 'application'
 
-    id 'org.cadixdev.licenser' version '0.6.1'
-    id 'com.adarshr.test-logger' version '3.0.0'
-    id 'edu.sc.seis.macAppBundle' version '2.3.0'
     id 'edu.sc.seis.launch4j' version '2.5.1'
+    id 'org.cadixdev.licenser' version '0.6.1'
+    id 'edu.sc.seis.macAppBundle' version '2.3.0'
     id 'de.undercouch.download' version '4.1.2'
     id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'com.github.ben-manes.versions' version '0.39.0'
 }
 
+apply plugin: 'edu.sc.seis.launch4j'
 apply plugin: 'org.mini2Dx.gettext'
 
 sourceCompatibility = '1.8'
@@ -68,13 +69,6 @@ dependencies {
     implementation 'joda-time:joda-time:2.10.12'
     implementation 'org.apache.commons:commons-compress:1.21'
     implementation 'org.commonmark:commonmark:0.18.0'
-
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testImplementation 'org.assertj:assertj-swing-junit:3.17.1'
-    testImplementation 'org.mock-server:mockserver-netty:5.11.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.8.1'
 }
 
 application {
@@ -85,15 +79,6 @@ application {
         "-Dawt.useSystemAAFontSettings=on",
         "-Dswing.aatext=true"
     ]
-}
-
-tasks.named('test') {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
-
-    testlogger {
-        theme 'mocha'
-    }
 }
 
 jar {
@@ -201,11 +186,6 @@ artifacts {
     archives file(project.tasks.jar.getArchivePath().getPath().replace('.jar', '.zip').replace('libs', 'distributions'))
 }
 
-test {
-    if (JavaVersion.current().isJava9Compatible()) {
-        jvmArgs '--add-opens=java.base/sun.security.x509=ALL-UNNAMED'
-    }
-}
 
 task copyArtifacts(type: Copy) {
     dependsOn build
@@ -220,10 +200,6 @@ task downloadNewerUniversalJavaApplicationStub(type: Download) {
     src 'https://raw.githubusercontent.com/tofi86/universalJavaApplicationStub/2dbbf92b35e61194266c985c8bc6b411053a1b4a/src/universalJavaApplicationStub'
     dest file("$buildDir/macApp/${project.name}.app/Contents/MacOS/universalJavaApplicationStub")
     overwrite true
-}
-
-task createTestLauncherDir {
-    project.file('testLauncher/dev').mkdirs()
 }
 
 task createMacApp(type: Zip) {
