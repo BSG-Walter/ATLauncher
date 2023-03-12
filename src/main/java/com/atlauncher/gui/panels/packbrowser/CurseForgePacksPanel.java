@@ -207,6 +207,7 @@ public class CurseForgePacksPanel extends PackBrowserPlatformPanel {
     }
 
     public void addById(String id) {
+
         ProgressDialog<CurseForgeProject> progressDialog = new ProgressDialog<>(
                 // #. {0} is the platform were getting info from (e.g. CurseForge/Modrinth)
                 GetText.tr("Looking Up Pack On {0}", "CurseForge"),
@@ -248,7 +249,7 @@ public class CurseForgePacksPanel extends PackBrowserPlatformPanel {
 
         CurseForgeProject project = progressDialog.getReturnValue();
 
-        if (project == null || project.classId != Constants.CURSEFORGE_MODPACKS_SECTION_ID) {
+        if (project == null) {
             DialogManager.okDialog().setType(DialogManager.ERROR).setTitle(GetText.tr("Pack Not Found"))
                     .setContent(
                             GetText.tr(

@@ -101,7 +101,7 @@ public class AccountsViewModel implements IAccountsViewModel {
     }
 
     private String loginUsername = null;
-    private String loginPassword = "passw";
+    private String loginPassword = null;
     private boolean loginRemember = false;
 
     @Override
@@ -121,7 +121,7 @@ public class AccountsViewModel implements IAccountsViewModel {
 
     @Override
     public boolean isLoginPasswordSet() {
-        return true;
+        return loginPassword != null && !loginPassword.isEmpty();
     }
 
     @Override
@@ -199,18 +199,14 @@ public class AccountsViewModel implements IAccountsViewModel {
     @NotNull
     @Override
     public LoginPostResult loginPost() {
-        if (loginResponse != null && loginResponse.hasAuth() && loginResponse.isValidAuth()) {
-            if (selectedAccountIndex == -1) {
-                addNewAccount(loginResponse);
-                invalidateClientToken();
-                return new LoginPostResult.Added();
-            } else {
-                editAccount(loginResponse);
-                invalidateClientToken();
-                return new LoginPostResult.Edited();
-            }
+        if (selectedAccountIndex == -1) {
+            addNewAccount(loginResponse);
+            invalidateClientToken();
+            return new LoginPostResult.Added();
         } else {
-            return new LoginPostResult.Error(loginResponse != null ? loginResponse.getErrorMessage() : null);
+            editAccount(loginResponse);
+            invalidateClientToken();
+            return new LoginPostResult.Edited();
         }
     }
 

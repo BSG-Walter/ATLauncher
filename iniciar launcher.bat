@@ -1,0 +1,1 @@
+gradlew run --args="--debug --working-dir=testLauncher"

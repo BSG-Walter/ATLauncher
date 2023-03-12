@@ -120,8 +120,8 @@ public class AccountManager {
             while ((obj = objIn.readObject()) != null) {
                 Account account = (Account) obj;
 
-                convertedAccounts.add(new MojangAccount(account.username, account.password, account.minecraftUsername,
-                        account.uuid, account.remember, account.clientToken));
+                convertedAccounts.add(
+                        new MojangAccount(account.username, account.password, account.remember, account.clientToken));
             }
         } catch (EOFException e) {
             // Don't log this, it always happens when it gets to the end of the file

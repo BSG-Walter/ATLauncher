@@ -58,7 +58,6 @@ import com.atlauncher.gui.panels.packbrowser.ModrinthPacksPanel;
 import com.atlauncher.gui.panels.packbrowser.PackBrowserPlatformPanel;
 import com.atlauncher.gui.panels.packbrowser.PacksBrowserTabTitlePanel;
 import com.atlauncher.gui.panels.packbrowser.TechnicPacksPanel;
-import com.atlauncher.gui.panels.packbrowser.UnifiedPacksPanel;
 import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.MinecraftManager;
@@ -94,7 +93,6 @@ public final class PacksBrowserTab extends JPanel implements Tab, Relocalization
     private final JLabel platformMessageJLabel = new JLabel();
 
     private final JTabbedPane platformTabbedPane = new JTabbedPane();
-    private final PackBrowserPlatformPanel unifiedPacksPanel = new UnifiedPacksPanel();
     private final PackBrowserPlatformPanel atlauncherPacksPanel = new ATLauncherPacksPanel();
     private final PackBrowserPlatformPanel atlauncherFeaturedPacksPanel = new ATLauncherFeaturedPacksPanel();
     private final PackBrowserPlatformPanel curseForgePacksPanel = new CurseForgePacksPanel();
@@ -269,11 +267,6 @@ public final class PacksBrowserTab extends JPanel implements Tab, Relocalization
 
         int index = 0;
 
-        if (ConfigManager.getConfigItem("useGraphql.unifiedModPacks", false) == true) {
-            platformTabbedPane.add(unifiedPacksPanel);
-            platformTabbedPane.setTabComponentAt(index++, new PacksBrowserTabTitlePanel("Search"));
-        }
-
         platformTabbedPane.add(atlauncherPacksPanel);
         platformTabbedPane.setTabComponentAt(index++, new PacksBrowserTabTitlePanel("ATLauncher"));
 
@@ -306,11 +299,7 @@ public final class PacksBrowserTab extends JPanel implements Tab, Relocalization
                     .getSelectedComponent();
 
             // send analytics page view
-            if (selectedPanel.getPlatformName().equals("Search")) {
-                Analytics.sendScreenView("Unified ModPack Search");
-            } else {
-                Analytics.sendScreenView(selectedPanel.getPlatformName() + " Platform Packs");
-            }
+            Analytics.sendScreenView(selectedPanel.getPlatformName() + " Platform Packs");
 
             afterTabChange();
         });
@@ -525,10 +514,7 @@ public final class PacksBrowserTab extends JPanel implements Tab, Relocalization
 
     @Override
     public String getAnalyticsScreenViewName() {
-        if (ConfigManager.getConfigItem("useGraphql.unifiedModPacks", false) == true) {
-            return "Unified ModPack Search";
-        }
-
+        // since this is the default, this is the main view name
         return "ATLauncher Platform Packs";
     }
 

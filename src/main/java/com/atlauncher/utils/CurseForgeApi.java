@@ -52,11 +52,6 @@ public class CurseForgeApi {
         return searchCurseForge(null, sectionId, query, page, modLoaderType, sort);
     }
 
-    public static List<CurseForgeProject> searchCurseForge(int sectionId, String query, int page, int modLoaderType,
-            String sort, Integer categoryId) {
-        return searchCurseForge(null, sectionId, query, page, modLoaderType, sort, true, categoryId);
-    }
-
     public static List<CurseForgeProject> searchCurseForge(String gameVersion, int sectionId, String query, int page,
             int modLoaderType, String sort, Integer categoryId) {
         return searchCurseForge(gameVersion, sectionId, query, page, modLoaderType, sort, true, categoryId);
@@ -109,27 +104,16 @@ public class CurseForgeApi {
         return searchCurseForge(gameVersion, sectionId, query, page, modLoaderType, sort, null);
     }
 
-    public static List<CurseForgeProject> searchWorlds(String gameVersion, String query, int page, String sort,
-            String categoryId) {
-        Integer categoryIdParam = categoryId == null ? null : Integer.parseInt(categoryId);
-
-        return searchCurseForge(gameVersion, Constants.CURSEFORGE_WORLDS_SECTION_ID, query, page, 0, sort,
-                categoryIdParam);
+    public static List<CurseForgeProject> searchWorlds(String gameVersion, String query, int page, String sort) {
+        return searchCurseForge(gameVersion, Constants.CURSEFORGE_WORLDS_SECTION_ID, query, page, 0, sort);
     }
 
-    public static List<CurseForgeProject> searchResourcePacks(String query, int page, String sort, String categoryId) {
-        Integer categoryIdParam = categoryId == null ? null : Integer.parseInt(categoryId);
-
-        return searchCurseForge(Constants.CURSEFORGE_RESOURCE_PACKS_SECTION_ID, query, page, 0, sort,
-                categoryIdParam);
+    public static List<CurseForgeProject> searchResourcePacks(String query, int page, String sort) {
+        return searchCurseForge(Constants.CURSEFORGE_RESOURCE_PACKS_SECTION_ID, query, page, 0, sort);
     }
 
-    public static List<CurseForgeProject> searchMods(String gameVersion, String query, int page, String sort,
-            String categoryId) {
-        Integer categoryIdParam = categoryId == null ? null : Integer.parseInt(categoryId);
-
-        return searchCurseForge(gameVersion, Constants.CURSEFORGE_MODS_SECTION_ID, query, page, 0, sort,
-                categoryIdParam);
+    public static List<CurseForgeProject> searchMods(String gameVersion, String query, int page, String sort) {
+        return searchCurseForge(gameVersion, Constants.CURSEFORGE_MODS_SECTION_ID, query, page, 0, sort);
     }
 
     public static List<CurseForgeProject> searchModPacks(String query, int page, String sort, boolean sortDescending,
@@ -141,20 +125,14 @@ public class CurseForgeApi {
                 sortDescending, categoryIdParam);
     }
 
-    public static List<CurseForgeProject> searchModsForFabric(String gameVersion, String query, int page, String sort,
-            String categoryId) {
-        Integer categoryIdParam = categoryId == null ? null : Integer.parseInt(categoryId);
-
+    public static List<CurseForgeProject> searchModsForFabric(String gameVersion, String query, int page, String sort) {
         return searchCurseForge(gameVersion, Constants.CURSEFORGE_MODS_SECTION_ID, query, page,
-                Constants.CURSEFORGE_FABRIC_MODLOADER_ID, sort, categoryIdParam);
+                Constants.CURSEFORGE_FABRIC_MODLOADER_ID, sort);
     }
 
-    public static List<CurseForgeProject> searchModsForForge(String gameVersion, String query, int page, String sort,
-            String categoryId) {
-        Integer categoryIdParam = categoryId == null ? null : Integer.parseInt(categoryId);
-
+    public static List<CurseForgeProject> searchModsForForge(String gameVersion, String query, int page, String sort) {
         return searchCurseForge(gameVersion, Constants.CURSEFORGE_MODS_SECTION_ID, query, page,
-                Constants.CURSEFORGE_FORGE_MODLOADER_ID, sort, categoryIdParam);
+                Constants.CURSEFORGE_FORGE_MODLOADER_ID, sort);
     }
 
     public static List<CurseForgeFile> getFilesForProject(int projectId) {
@@ -194,11 +172,7 @@ public class CurseForgeApi {
     }
 
     public static CurseForgeProject getProjectById(int projectId) {
-        return getProjectById(Integer.toString(projectId));
-    }
-
-    public static CurseForgeProject getProjectById(String projectId) {
-        String url = String.format("%s/mods/%s", Constants.CURSEFORGE_CORE_API_URL, projectId);
+        String url = String.format("%s/mods/%d", Constants.CURSEFORGE_CORE_API_URL, projectId);
 
         Download download = Download.build().setUrl(url).header("x-api-key", Constants.CURSEFORGE_CORE_API_KEY)
                 .cached(new CacheControl.Builder().maxStale(10, TimeUnit.MINUTES).build());
@@ -371,30 +345,7 @@ public class CurseForgeApi {
             return new ArrayList<>();
         }
 
-        return categories.stream().filter(c -> c.classId != null && c.classId == Constants.CURSEFORGE_MODS_SECTION_ID)
-                .sorted(Comparator.comparing(c -> c.name)).collect(Collectors.toList());
-    }
-
-    public static List<CurseForgeCategoryForGame> getCategoriesForResourcePacks() {
-        List<CurseForgeCategoryForGame> categories = getCategories();
-
-        if (categories == null) {
-            return new ArrayList<>();
-        }
-
-        return categories.stream()
-                .filter(c -> c.classId != null && c.classId == Constants.CURSEFORGE_RESOURCE_PACKS_SECTION_ID)
-                .sorted(Comparator.comparing(c -> c.name)).collect(Collectors.toList());
-    }
-
-    public static List<CurseForgeCategoryForGame> getCategoriesForWorlds() {
-        List<CurseForgeCategoryForGame> categories = getCategories();
-
-        if (categories == null) {
-            return new ArrayList<>();
-        }
-
-        return categories.stream().filter(c -> c.classId != null && c.classId == Constants.CURSEFORGE_WORLDS_SECTION_ID)
+        return categories.stream().filter(c -> c.classId != null && c.classId == 6)
                 .sorted(Comparator.comparing(c -> c.name)).collect(Collectors.toList());
     }
 }

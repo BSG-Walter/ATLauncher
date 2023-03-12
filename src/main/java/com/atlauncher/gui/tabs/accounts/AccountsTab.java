@@ -36,7 +36,6 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.event.HyperlinkEvent;
@@ -72,8 +71,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
     private final JComboBox<ComboItem<String>> accountsComboBox;
     private JLabel usernameLabel;
     private JTextField usernameField;
-    private JLabel passwordLabel;
-    private JPasswordField passwordField;
     private JLabel rememberLabel;
     private JCheckBox rememberField;
     private JButton leftButton;
@@ -160,10 +157,7 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
             public void keyReleased(KeyEvent e) {
                 viewModel.setLoginUsername(usernameField.getText());
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    if (!viewModel.isLoginPasswordSet())
-                        passwordField.grabFocus();
-                    else
-                        login();
+                    login();
                 }
             }
         });
@@ -173,29 +167,9 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
         gbc.gridy++;
         gbc.insets = UIConstants.LABEL_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
-        passwordLabel = new JLabel(GetText.tr("Password") + ":");
-        bottomPanel.add(passwordLabel, gbc);
-
         gbc.gridx++;
         gbc.insets = UIConstants.FIELD_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
-        passwordField = new JPasswordField(16);
-        passwordField.setName("passwordField");
-        passwordField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                viewModel.setLoginPassword(
-                        new String(passwordField.getPassword()));
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    if (!viewModel.isLoginUsernameSet())
-                        usernameField.grabFocus();
-                    else
-                        login();
-                }
-            }
-        });
-        bottomPanel.add(passwordField, gbc);
-
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.insets = UIConstants.LABEL_INSETS;
@@ -384,7 +358,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
         viewModel.onAccountSelected(account -> {
             if (account == null) {
                 usernameField.setText("");
-                passwordField.setText("");
                 rememberField.setSelected(false);
                 leftButton.setText(GetText.tr("Add"));
                 rightButton.setText(GetText.tr("Clear"));
@@ -392,8 +365,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
 
                 usernameLabel.setVisible(true);
                 usernameField.setVisible(true);
-                passwordLabel.setVisible(true);
-                passwordField.setVisible(true);
                 rememberLabel.setVisible(true);
                 rememberField.setVisible(true);
                 leftButton.setVisible(true);
@@ -404,8 +375,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
 
                 usernameLabel.setVisible(account instanceof MojangAccount);
                 usernameField.setVisible(account instanceof MojangAccount);
-                passwordLabel.setVisible(account instanceof MojangAccount);
-                passwordField.setVisible(account instanceof MojangAccount);
                 rememberLabel.setVisible(account instanceof MojangAccount);
                 rememberField.setVisible(account instanceof MojangAccount);
                 leftButton.setVisible(account instanceof MojangAccount);
@@ -418,11 +387,9 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
                 if (account instanceof MojangAccount) {
                     MojangAccount mojangAccount = (MojangAccount) account;
                     usernameField.setText(mojangAccount.username);
-                    passwordField.setText(mojangAccount.password);
                     rememberField.setSelected(mojangAccount.remember);
                 } else {
                     usernameField.setText("");
-                    passwordField.setText("");
                     rememberField.setSelected(false);
                 }
 
@@ -451,7 +418,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
         usernameField.setText("");
         viewModel.setLoginUsername("");
 
-        passwordField.setText("");
         viewModel.setLoginPassword("");
 
         rememberField.setSelected(false);
@@ -463,6 +429,18 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
      */
     @SuppressWarnings("unchecked")
     private void login() {
+        // Pre check
+        LoginPreCheckResult preCheckResult = viewModel.loginPreCheck();
+        if (preCheckResult instanceof LoginPreCheckResult.Exists) {
+            DialogManager
+                    .okDialog()
+                    .setTitle(GetText.tr("Account Not Added"))
+                    .setContent(GetText.tr("This account already exists."))
+                    .setType(DialogManager.ERROR)
+                    .show();
+            return;
+        }
+
         LogManager.info("Logging into Minecraft!");
         final ProgressDialog<LoginResponse> dialog = new ProgressDialog<>(
                 GetText.tr("Logging Into Minecraft"),
@@ -532,7 +510,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
         }
 
         usernameLabel.setText(GetText.tr("Username/Email") + ":");
-        passwordLabel.setText(GetText.tr("Password") + ":");
         rememberLabel.setText(GetText.tr("Remember Password") + ":");
         updateSkin.setText(GetText.tr("Reload Skin"));
     }

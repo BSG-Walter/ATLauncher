@@ -1,10 +1,10 @@
-FROM fedora:37
+FROM fedora:33
 LABEL maintainer="ryan.dowling@atlauncher.com"
 
 # install dependencies
-RUN dnf install -y rpmdevtools libappstream-glib desktop-file-utils \
-    && dnf clean all\
-    && rm -rf /var/cache/dnf
+RUN yum install -y rpmdevtools libappstream-glib desktop-file-utils \
+    && yum clean all\
+    && rm -rf /var/cache/yum
 
 # add in all the files
 ADD rpm/atlauncher.spec /work/atlauncher.spec

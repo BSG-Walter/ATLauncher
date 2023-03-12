@@ -52,7 +52,10 @@ public class ModpacksChApi {
                 .limit(Constants.MODPACKS_CH_PAGINATION_SIZE).collect(Collectors.toList());
 
         List<ModpacksChPackManifest> packs = packsToShow.parallelStream()
-                .map(packId -> getModpackManifest(packId))
+                .map(packId -> com.atlauncher.network.Download.build()
+                        .setUrl(String.format("%s/modpack/%s", Constants.MODPACKS_CH_API_URL, packId))
+                        .cached(new CacheControl.Builder().maxStale(1, TimeUnit.HOURS).build())
+                        .asClass(ModpacksChPackManifest.class))
                 .filter(p -> p.versions != null).collect(Collectors.toList());
 
         return packs;
@@ -71,8 +74,11 @@ public class ModpacksChApi {
                 .limit(Constants.MODPACKS_CH_PAGINATION_SIZE).collect(Collectors.toList());
 
         List<ModpacksChPackManifest> packs = packsToShow.parallelStream()
-                .map(packId -> getModpackManifest(packId))
-                .filter(p -> p != null && p.versions != null).collect(Collectors.toList());
+                .map(packId -> com.atlauncher.network.Download.build()
+                        .setUrl(String.format("%s/modpack/%s", Constants.MODPACKS_CH_API_URL, packId))
+                        .cached(new CacheControl.Builder().maxStale(1, TimeUnit.HOURS).build())
+                        .asClass(ModpacksChPackManifest.class))
+                .filter(p -> p.versions != null).collect(Collectors.toList());
 
         return packs;
     }
@@ -93,30 +99,6 @@ public class ModpacksChApi {
             return modsManifest;
         } catch (Exception e) {
             LogManager.logStackTrace("Error calling mods endpoint for Modpacks.ch", e);
-        }
-
-        return null;
-    }
-
-    public static ModpacksChPackManifest getModpackManifest(int packId) {
-        return getModpackManifest(Integer.toString(packId));
-    }
-
-    public static ModpacksChPackManifest getModpackManifest(String packId) {
-        try {
-            ModpacksChPackManifest modsManifest = Download.build()
-                    .setUrl(String.format("%s/modpack/%s", Constants.MODPACKS_CH_API_URL,
-                            packId))
-                    .cached(new CacheControl.Builder().maxStale(1, TimeUnit.HOURS).build())
-                    .asClassWithThrow(ModpacksChPackManifest.class);
-
-            if (modsManifest == null || (modsManifest.status != null && modsManifest.status.equals("error"))) {
-                return null;
-            }
-
-            return modsManifest;
-        } catch (Exception e) {
-            LogManager.logStackTrace("Error calling modpack endpoint for Modpacks.ch", e);
         }
 
         return null;

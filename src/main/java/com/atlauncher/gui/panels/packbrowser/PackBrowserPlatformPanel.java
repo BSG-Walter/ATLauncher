@@ -72,7 +72,8 @@ public abstract class PackBrowserPlatformPanel extends JPanel {
             boolean sortDescending, String search, int page);
 
     public void load(JPanel contentPanel, String minecraftVersion, String category, String sort, boolean sortDescending,
-            String search, int page) {
+            String search,
+            int page) {
         // remove all components on the content panel
         contentPanel.removeAll();
 
@@ -82,20 +83,11 @@ public abstract class PackBrowserPlatformPanel extends JPanel {
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-
-        if (getPlatformName().equals("Search")) {
-            contentPanel.add(new LoadingPanel(GetText.tr("Searching For Packs...")), gbc);
-        } else {
-            // #. {0} is the platform name (ATLauncher, CurseForge, Technic, etc)
-            contentPanel.add(new LoadingPanel(GetText.tr("Loading {0} Packs...", getPlatformName())), gbc);
-        }
-
-        contentPanel.revalidate();
+        // #. {0} is the platform name (ATLauncher, CurseForge, Technic, etc)
+        contentPanel.add(new LoadingPanel(GetText.tr("Loading {0} Packs...", getPlatformName())), gbc);
 
         // load in the packs
         loadPacks(contentPanel, minecraftVersion, category, sort, sortDescending, search, page);
-
-        contentPanel.revalidate();
     }
 
     public PackBrowserPlatformPanel() {

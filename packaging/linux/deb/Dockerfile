@@ -1,4 +1,4 @@
-FROM debian:11
+FROM debian:10
 LABEL maintainer="ryan.dowling@atlauncher.com"
 
 # add in all the files

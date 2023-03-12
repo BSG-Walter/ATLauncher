@@ -39,13 +39,16 @@ import com.atlauncher.data.MicrosoftAccount;
 import com.atlauncher.data.MojangAccount;
 import com.atlauncher.data.minecraft.Library;
 import com.atlauncher.data.minecraft.LoggingClient;
-import com.atlauncher.managers.ConfigManager;
+import com.atlauncher.data.minecraft.PropertyMapSerializer;
 import com.atlauncher.managers.LWJGLManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.network.ErrorReporting;
 import com.atlauncher.utils.Java;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.util.UUIDTypeAdapter;
 
 public class MCLauncher {
@@ -68,6 +71,11 @@ public class MCLauncher {
     public static Process launch(MojangAccount account, Instance instance, LoginResponse response, Path nativesTempDir,
             Path lwjglNativesTempDir, String wrapperCommand, String username) throws Exception {
         String props = "[]";
+
+        if (!response.isOffline()) {
+            Gson gson = new GsonBuilder().registerTypeAdapter(PropertyMap.class, new PropertyMapSerializer()).create();
+            props = gson.toJson(response.getAuth().getUserProperties());
+        }
 
         return launch(account, instance, props, nativesTempDir.toFile(), lwjglNativesTempDir, wrapperCommand, username);
     }
@@ -168,6 +176,7 @@ public class MCLauncher {
         ErrorReporting.recordInstancePlay(instance.getPackName(), instance.getVersion(), instance.getLoaderVersion(),
                 2);
 
+        int initialMemory = Optional.ofNullable(instance.launcher.initialMemory).orElse(App.settings.initialMemory);
         int maximumMemory = Optional.ofNullable(instance.launcher.maximumMemory).orElse(App.settings.maximumMemory);
         int permGen = Optional.ofNullable(instance.launcher.permGen).orElse(App.settings.metaspace);
         String javaArguments = Optional.ofNullable(instance.launcher.javaArguments).orElse(App.settings.javaParameters);
@@ -258,10 +267,9 @@ public class MCLauncher {
         }
         arguments.add(path);
 
-        if (ConfigManager.getConfigItem("removeInitialMemoryOption", false) == false) {
-            int initialMemory = Optional.ofNullable(instance.launcher.initialMemory).orElse(App.settings.initialMemory);
-            arguments.add("-Xms" + initialMemory + "M");
-        }
+        arguments.add("-XX:-OmitStackTraceInFastThrow");
+
+        arguments.add("-Xms" + initialMemory + "M");
 
         if (OS.getMaximumRam() != 0 && maximumMemory < instance.getMemory()) {
             if ((OS.getMaximumRam() / 2) < instance.getMemory()) {
@@ -409,14 +417,14 @@ public class MCLauncher {
 
         argument = argument.replace("${auth_player_name}", username);
         argument = argument.replace("${profile_name}", instance.getName());
-        argument = argument.replace("${auth_access_token}", "cracked");
+        argument = argument.replace("${user_properties}", "[]");
         argument = argument.replace("${version_name}", instance.getMinecraftVersion());
         argument = argument.replace("${game_directory}", instance.getRootDirectory().getAbsolutePath());
         argument = argument.replace("${game_assets}", instance.getAssetsDir().getAbsolutePath());
         argument = argument.replace("${assets_root}", FileSystem.ASSETS.toAbsolutePath().toString());
         argument = argument.replace("${assets_index_name}", instance.getAssets());
         argument = argument.replace("${auth_uuid}", UUIDTypeAdapter.fromUUID(account.getRealUUID()));
-        argument = argument.replace("${auth_access_token}", account.getAccessToken());
+        argument = argument.replace("${auth_access_token}", "cracked");
         argument = argument.replace("${version_type}", instance.type.getValue());
         argument = argument.replace("${launcher_name}", Constants.LAUNCHER_NAME);
         argument = argument.replace("${launcher_version}", Constants.VERSION.toStringForLogging());

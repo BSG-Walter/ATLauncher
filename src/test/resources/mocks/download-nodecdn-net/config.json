@@ -1,12 +1,8 @@
 {
   "useLwjglReplacement": true,
   "useGraphql": {
-    "vanillaLoaderVersions": false,
     "loaderVersions": false,
-    "loaderVersionsNonForge": false,
-    "packActions": false,
-    "news": false,
-    "unifiedModPacks": false
+    "news": false
   },
   "minecraft": {
     "experiment": {

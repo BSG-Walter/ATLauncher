@@ -53,7 +53,6 @@ import com.atlauncher.evnt.listener.SettingsListener;
 import com.atlauncher.evnt.manager.RelocalizationManager;
 import com.atlauncher.evnt.manager.SettingsManager;
 import com.atlauncher.gui.components.JLabelWithHover;
-import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.utils.ComboItem;
 import com.atlauncher.utils.Java;
@@ -62,9 +61,9 @@ import com.atlauncher.utils.javafinder.JavaInfo;
 
 @SuppressWarnings("serial")
 public class JavaSettingsTab extends AbstractSettingsTab implements RelocalizationListener, SettingsListener {
-    private JLabelWithHover initialMemoryLabel;
-    private JSpinner initialMemory;
-    private JLabelWithHover initialMemoryLabelWarning;
+    private final JLabelWithHover initialMemoryLabel;
+    private final JSpinner initialMemory;
+    private final JLabelWithHover initialMemoryLabelWarning;
 
     private final JLabelWithHover maximumMemoryLabel;
     private final JSpinner maximumMemory;
@@ -109,66 +108,62 @@ public class JavaSettingsTab extends AbstractSettingsTab implements Relocalizati
         RelocalizationManager.addListener(this);
         SettingsManager.addListener(this);
 
-        if (ConfigManager.getConfigItem("removeInitialMemoryOption", false) == false) {
-            // Initial Memory Settings
-            gbc.gridx = 0;
-            gbc.gridy++;
-            gbc.insets = UIConstants.LABEL_INSETS;
-            gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
+        // Initial Memory Settings
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.insets = UIConstants.LABEL_INSETS;
+        gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
 
-            initialMemoryLabelWarning = new JLabelWithHover(WARNING_ICON,
-                    new HTMLBuilder().center().split(100).text(GetText
-                            .tr("You're running a 32 bit Java and therefore cannot use more than 1GB of Ram. Please see http://atl.pw/32bit for help."))
-                            .build(),
-                    RESTART_BORDER);
+        initialMemoryLabelWarning = new JLabelWithHover(WARNING_ICON, new HTMLBuilder().center().split(100).text(GetText
+                .tr("You're running a 32 bit Java and therefore cannot use more than 1GB of Ram. Please see http://atl.pw/32bit for help."))
+                .build(), RESTART_BORDER);
 
-            initialMemoryLabel = new JLabelWithHover(GetText.tr("Initial Memory/Ram") + ":", HELP_ICON,
-                    new HTMLBuilder().center().split(100).text(GetText.tr(
-                            "Initial memory/ram is the starting amount of memory/ram to use when starting Minecraft. This should be left at the default of 512 MB unless you know what your doing."))
-                            .build());
+        initialMemoryLabel = new JLabelWithHover(GetText.tr("Initial Memory/Ram") + ":", HELP_ICON,
+                new HTMLBuilder().center().split(100).text(GetText.tr(
+                        "Initial memory/ram is the starting amount of memory/ram to use when starting Minecraft. This should be left at the default of 512 MB unless you know what your doing."))
+                        .build());
 
-            JPanel initialMemoryPanel = new JPanel();
-            initialMemoryPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-            if (!Java.is64Bit()) {
-                initialMemoryPanel.add(initialMemoryLabelWarning);
-            }
-            initialMemoryPanel.add(initialMemoryLabel);
+        JPanel initialMemoryPanel = new JPanel();
+        initialMemoryPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        if (!Java.is64Bit()) {
+            initialMemoryPanel.add(initialMemoryLabelWarning);
+        }
+        initialMemoryPanel.add(initialMemoryLabel);
 
-            add(initialMemoryPanel, gbc);
+        add(initialMemoryPanel, gbc);
 
-            gbc.gridx++;
-            gbc.insets = UIConstants.FIELD_INSETS;
-            gbc.anchor = GridBagConstraints.BASELINE_LEADING;
-            SpinnerNumberModel initialMemoryModel = new SpinnerNumberModel(App.settings.initialMemory, null, null, 128);
-            initialMemoryModel.setMinimum(128);
-            initialMemoryModel.setMaximum((systemRam == 0 ? null : systemRam));
-            initialMemory = new JSpinner(initialMemoryModel);
-            ((JSpinner.DefaultEditor) initialMemory.getEditor()).getTextField().setColumns(5);
-            initialMemory.addChangeListener(new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    JSpinner s = (JSpinner) e.getSource();
-                    // if initial memory is larger than maximum memory, make maximum memory match
-                    if ((Integer) s.getValue() > (Integer) maximumMemory.getValue()) {
-                        maximumMemory.setValue((Integer) s.getValue());
-                    }
+        gbc.gridx++;
+        gbc.insets = UIConstants.FIELD_INSETS;
+        gbc.anchor = GridBagConstraints.BASELINE_LEADING;
+        SpinnerNumberModel initialMemoryModel = new SpinnerNumberModel(App.settings.initialMemory, null, null, 128);
+        initialMemoryModel.setMinimum(128);
+        initialMemoryModel.setMaximum((systemRam == 0 ? null : systemRam));
+        initialMemory = new JSpinner(initialMemoryModel);
+        ((JSpinner.DefaultEditor) initialMemory.getEditor()).getTextField().setColumns(5);
+        initialMemory.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                JSpinner s = (JSpinner) e.getSource();
+                // if initial memory is larger than maximum memory, make maximum memory match
+                if ((Integer) s.getValue() > (Integer) maximumMemory.getValue()) {
+                    maximumMemory.setValue((Integer) s.getValue());
+                }
 
-                    if ((Integer) s.getValue() > 512 && !initialMemoryWarningShown) {
-                        initialMemoryWarningShown = true;
-                        int ret = DialogManager.yesNoDialog().setTitle(GetText.tr("Warning"))
-                                .setType(DialogManager.WARNING)
-                                .setContent(GetText.tr(
-                                        "Setting initial memory above 512MB is not recommended and can cause issues. Are you sure you want to do this?"))
-                                .show();
+                if ((Integer) s.getValue() > 512 && !initialMemoryWarningShown) {
+                    initialMemoryWarningShown = true;
+                    int ret = DialogManager.yesNoDialog().setTitle(GetText.tr("Warning"))
+                            .setType(DialogManager.WARNING)
+                            .setContent(GetText.tr(
+                                    "Setting initial memory above 512MB is not recommended and can cause issues. Are you sure you want to do this?"))
+                            .show();
 
-                        if (ret != 0) {
-                            initialMemory.setValue(512);
-                        }
+                    if (ret != 0) {
+                        initialMemory.setValue(512);
                     }
                 }
-            });
-            add(initialMemory, gbc);
-        }
+            }
+        });
+        add(initialMemory, gbc);
 
         // Maximum Memory Settings
         // Perm Gen Settings
@@ -205,11 +200,9 @@ public class JavaSettingsTab extends AbstractSettingsTab implements Relocalizati
             @Override
             public void stateChanged(ChangeEvent e) {
                 JSpinner s = (JSpinner) e.getSource();
-                if (ConfigManager.getConfigItem("removeInitialMemoryOption", false) == false) {
-                    // if initial memory is larger than maximum memory, make initial memory match
-                    if ((Integer) initialMemory.getValue() > (Integer) s.getValue()) {
-                        initialMemory.setValue(s.getValue());
-                    }
+                // if initial memory is larger than maximum memory, make initial memory match
+                if ((Integer) initialMemory.getValue() > (Integer) s.getValue()) {
+                    initialMemory.setValue(s.getValue());
                 }
 
                 if ((Integer) s.getValue() > 8192 && !maximumMemoryEightGBWarningShown) {
@@ -343,9 +336,27 @@ public class JavaSettingsTab extends AbstractSettingsTab implements Relocalizati
         gbc.gridwidth = 1;
         gbc.insets = UIConstants.LABEL_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
+        JLabelWithHover javaMinecraftProvidedLabel = new JLabelWithHover(GetText.tr("Java Path") + ":", HELP_ICON,
+                new HTMLBuilder().center().text(GetText.tr(
+                        "This version of Minecraft provides a specific version of Java to be used with it, so you cannot set a custom Java path.<br/><br/>In order to manually set a path, you must disable this option (highly not recommended)."))
+                        .build());
+        add(javaMinecraftProvidedLabel, gbc);
+
+        gbc.gridx++;
+        gbc.insets = UIConstants.FIELD_INSETS;
+        gbc.anchor = GridBagConstraints.BASELINE_LEADING;
+        final JLabel javaPathDummy = new JLabel("Uses Java provided by Minecraft");
+        javaPathDummy.setEnabled(false);
+        add(javaPathDummy, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        gbc.insets = UIConstants.LABEL_INSETS;
+        gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
         javaPathLabel = new JLabelWithHover(GetText.tr("Java Path") + ":", HELP_ICON,
                 new HTMLBuilder().center().split(100).text(GetText.tr(
-                        "This setting allows you to specify where your Java Path is. Where possible the launcher will use a version of Java provided by Minecraft to launch the instance, but in cases where one isn't available, this path will be used."))
+                        "This setting allows you to specify where your Java Path is. This should be left as default, but if you know what you're doing, just set this to the path where the bin folder is for the version of Java you want to use. If you mess up, click the Reset button to go back to the default"))
                         .build());
         add(javaPathLabel, gbc);
 
@@ -424,6 +435,12 @@ public class JavaSettingsTab extends AbstractSettingsTab implements Relocalizati
         javaPathPanel.add(javaPathPanelTop);
         javaPathPanel.add(Box.createVerticalStrut(5));
         javaPathPanel.add(javaPathPanelBottom);
+
+        boolean isUsingMinecraftProvidedJava = App.settings.useJavaProvidedByMinecraft;
+        javaMinecraftProvidedLabel.setVisible(isUsingMinecraftProvidedJava);
+        javaPathDummy.setVisible(isUsingMinecraftProvidedJava);
+        javaPathLabel.setVisible(!isUsingMinecraftProvidedJava);
+        javaPathPanel.setVisible(!isUsingMinecraftProvidedJava);
 
         add(javaPathPanel, gbc);
 
@@ -584,6 +601,12 @@ public class JavaSettingsTab extends AbstractSettingsTab implements Relocalizati
                             useJavaProvidedByMinecraft.setSelected(true);
                         }
                     }
+
+                    javaMinecraftProvidedLabel.setVisible(useJavaProvidedByMinecraft.isSelected());
+                    javaPathDummy.setVisible(useJavaProvidedByMinecraft.isSelected());
+
+                    javaPathLabel.setVisible(!useJavaProvidedByMinecraft.isSelected());
+                    javaPathPanel.setVisible(!useJavaProvidedByMinecraft.isSelected());
                 });
             }
         });
@@ -655,8 +678,7 @@ public class JavaSettingsTab extends AbstractSettingsTab implements Relocalizati
     }
 
     public boolean isValidJavaParamaters() {
-        if ((ConfigManager.getConfigItem("removeInitialMemoryOption", false) == false
-                && javaParameters.getText().contains("-Xms")) || javaParameters.getText().contains("-Xmx")
+        if (javaParameters.getText().contains("-Xms") || javaParameters.getText().contains("-Xmx")
                 || javaParameters.getText().contains("-XX:PermSize")
                 || javaParameters.getText().contains("-XX:MetaspaceSize")) {
             DialogManager.okDialog().setTitle(GetText.tr("Help")).setContent(new HTMLBuilder().center().text(GetText.tr(
@@ -668,10 +690,7 @@ public class JavaSettingsTab extends AbstractSettingsTab implements Relocalizati
     }
 
     public void save() {
-        if (ConfigManager.getConfigItem("removeInitialMemoryOption", false) == false) {
-            App.settings.initialMemory = (Integer) initialMemory.getValue();
-        }
-
+        App.settings.initialMemory = (Integer) initialMemory.getValue();
         App.settings.maximumMemory = (Integer) maximumMemory.getValue();
         App.settings.metaspace = (Integer) permGen.getValue();
         App.settings.windowWidth = (Integer) widthField.getValue();
@@ -701,16 +720,14 @@ public class JavaSettingsTab extends AbstractSettingsTab implements Relocalizati
 
     @Override
     public void onRelocalization() {
-        if (ConfigManager.getConfigItem("removeInitialMemoryOption", false) == false) {
-            this.initialMemoryLabelWarning.setToolTipText(new HTMLBuilder().center().split(100).text(GetText.tr(
-                    "You're running a 32 bit Java and therefore cannot use more than 1GB of Ram. Please see http://atl.pw/32bit for help."))
-                    .build());
+        this.initialMemoryLabelWarning.setToolTipText(new HTMLBuilder().center().split(100).text(GetText.tr(
+                "You're running a 32 bit Java and therefore cannot use more than 1GB of Ram. Please see http://atl.pw/32bit for help."))
+                .build());
 
-            this.initialMemoryLabel.setText(GetText.tr("Initial Memory/Ram") + ":");
-            this.initialMemoryLabel.setToolTipText(new HTMLBuilder().center().split(100).text(GetText.tr(
-                    "Initial memory/ram is the starting amount of memory/ram to use when starting Minecraft. This should be left at the default of 512 MB unless you know what your doing."))
-                    .build());
-        }
+        this.initialMemoryLabel.setText(GetText.tr("Initial Memory/Ram") + ":");
+        this.initialMemoryLabel.setToolTipText(new HTMLBuilder().center().split(100).text(GetText.tr(
+                "Initial memory/ram is the starting amount of memory/ram to use when starting Minecraft. This should be left at the default of 512 MB unless you know what your doing."))
+                .build());
 
         this.maximumMemoryLabel.setText(GetText.tr("Maximum Memory/Ram") + ":");
         this.maximumMemoryLabel.setToolTipText(new HTMLBuilder().center().split(100)
