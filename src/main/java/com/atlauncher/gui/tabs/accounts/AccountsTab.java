@@ -463,18 +463,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
      */
     @SuppressWarnings("unchecked")
     private void login() {
-        // Pre check
-        LoginPreCheckResult preCheckResult = viewModel.loginPreCheck();
-        if (preCheckResult instanceof LoginPreCheckResult.Exists) {
-            DialogManager
-                    .okDialog()
-                    .setTitle(GetText.tr("Account Not Added"))
-                    .setContent(GetText.tr("This account already exists."))
-                    .setType(DialogManager.ERROR)
-                    .show();
-            return;
-        }
-
         LogManager.info("Logging into Minecraft!");
         final ProgressDialog<LoginResponse> dialog = new ProgressDialog<>(
                 GetText.tr("Logging Into Minecraft"),

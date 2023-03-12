@@ -39,7 +39,6 @@ import com.atlauncher.data.MicrosoftAccount;
 import com.atlauncher.data.MojangAccount;
 import com.atlauncher.data.minecraft.Library;
 import com.atlauncher.data.minecraft.LoggingClient;
-import com.atlauncher.data.minecraft.PropertyMapSerializer;
 import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.LWJGLManager;
 import com.atlauncher.managers.LogManager;
@@ -47,9 +46,6 @@ import com.atlauncher.network.ErrorReporting;
 import com.atlauncher.utils.Java;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.util.UUIDTypeAdapter;
 
 public class MCLauncher {
@@ -72,11 +68,6 @@ public class MCLauncher {
     public static Process launch(MojangAccount account, Instance instance, LoginResponse response, Path nativesTempDir,
             Path lwjglNativesTempDir, String wrapperCommand, String username) throws Exception {
         String props = "[]";
-
-        if (!response.isOffline()) {
-            Gson gson = new GsonBuilder().registerTypeAdapter(PropertyMap.class, new PropertyMapSerializer()).create();
-            props = gson.toJson(response.getAuth().getUserProperties());
-        }
 
         return launch(account, instance, props, nativesTempDir.toFile(), lwjglNativesTempDir, wrapperCommand, username);
     }
@@ -418,7 +409,7 @@ public class MCLauncher {
 
         argument = argument.replace("${auth_player_name}", username);
         argument = argument.replace("${profile_name}", instance.getName());
-        argument = argument.replace("${user_properties}", Optional.ofNullable(props).orElse("[]"));
+        argument = argument.replace("${auth_access_token}", "cracked");
         argument = argument.replace("${version_name}", instance.getMinecraftVersion());
         argument = argument.replace("${game_directory}", instance.getRootDirectory().getAbsolutePath());
         argument = argument.replace("${game_assets}", instance.getAssetsDir().getAbsolutePath());
@@ -455,8 +446,8 @@ public class MCLauncher {
         if (props != null) {
             argsString = argsString.replace(props, "REDACTED");
         }
-        argsString = argsString.replace(account.getAccessToken(), "REDACTED");
-        argsString = argsString.replace(account.getSessionToken(), "REDACTED");
+        argsString = argsString.replace("cracked", "REDACTED");
+        argsString = argsString.replace("cracked", "REDACTED");
 
         return argsString;
     }

@@ -72,22 +72,7 @@ public class LoginResponse {
     }
 
     public boolean isValidAuth() {
-        if (!this.hasAuth()) {
-            return false;
-        }
-
-        if (!this.auth.isLoggedIn()) {
-            this.setErrorMessage("Response from Mojang wasn't valid!");
-        } else if (this.auth.getAuthenticatedToken() == null) {
-            this.setErrorMessage("No authentication token returned from Mojang!");
-        } else if (auth.getSelectedProfile() == null
-                && (this.auth.getAvailableProfiles() == null || this.auth.getAvailableProfiles().length == 0)) {
-            this.setErrorMessage("There are no paid copies of Minecraft associated with this account!");
-        } else if (this.auth.getSelectedProfile() == null) {
-            this.setErrorMessage("No profile selected!");
-        }
-
-        return !this.hasError;
+        return true;
     }
 
     public void save() {

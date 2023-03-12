@@ -101,7 +101,7 @@ public class AccountsViewModel implements IAccountsViewModel {
     }
 
     private String loginUsername = null;
-    private String loginPassword = null;
+    private String loginPassword = "passw";
     private boolean loginRemember = false;
 
     @Override
@@ -121,7 +121,7 @@ public class AccountsViewModel implements IAccountsViewModel {
 
     @Override
     public boolean isLoginPasswordSet() {
-        return loginPassword != null && !loginPassword.isEmpty();
+        return true;
     }
 
     @Override
@@ -159,7 +159,6 @@ public class AccountsViewModel implements IAccountsViewModel {
     private void addNewAccount(LoginResponse response) {
         MojangAccount account = new MojangAccount(loginUsername,
                 loginPassword,
-                response,
                 loginRemember,
                 getClientToken());
 
