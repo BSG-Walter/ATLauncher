@@ -72,7 +72,10 @@ public class LoginResponse {
     }
 
     public boolean isValidAuth() {
-        return true;
+        if (this.auth.getSelectedProfile() == null) {
+            this.setErrorMessage("No profile selected!");
+        }
+        return !this.hasError;
     }
 
     public void save() {

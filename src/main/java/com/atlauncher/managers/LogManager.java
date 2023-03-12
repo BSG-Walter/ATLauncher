@@ -62,7 +62,7 @@ public final class LogManager {
      * The level of debug logs to show. 1 being lowest, 2 being meh, 3 being
      * EXTREEEEEEEME and 5 being OMG WTF SO MUCH LOGS
      */
-    public static int debugLevel = 0;
+    public static int debugLevel = 1;
 
     public static void info(String message) {
         queue.offer(new LogEvent(LogType.INFO, message));
