@@ -142,14 +142,7 @@ public class Launcher {
     }
 
     public boolean launcherHasUpdate() {
-        try {
-            this.latestLauncherVersion = Gsons.DEFAULT
-                    .fromJson(new FileReader(FileSystem.JSON.resolve("version.json").toFile()), LauncherVersion.class);
-        } catch (JsonSyntaxException | FileNotFoundException | JsonIOException e) {
-            LogManager.logStackTrace("Exception when loading latest launcher version!", e);
-        }
-
-        return this.latestLauncherVersion != null && Constants.VERSION.needsUpdate(this.latestLauncherVersion);
+        return false;
     }
 
     public void downloadUpdate() {

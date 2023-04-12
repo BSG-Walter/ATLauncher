@@ -181,7 +181,7 @@ public class App {
      * <p/>
      * --no-launcher-update
      */
-    public static boolean noLauncherUpdate = false;
+    public static boolean noLauncherUpdate = true;
 
     /**
      * This will tell the launcher to not show the console. You can open the console
